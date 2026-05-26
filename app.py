@@ -23,8 +23,8 @@ MODEL = "qwen2.5-coder:7b"
 # Initialize the local LLM and local embeddings
 
 # Add parameter base_url="http://<ip>:11434" to both the llm and embeddings if your Ollama server is running inside a container and you are connecting from the host machine. Use "http://localhost:11434" if you are running the script inside the same container as Ollama.
-llm = ChatOllama(base_url="http://172.23.96.1:11434", model=MODEL, temperature=0.0)  
-embeddings = OllamaEmbeddings(base_url="http://172.23.96.1:11434", model="nomic-embed-text")
+llm = ChatOllama(model=MODEL, temperature=0.0)  
+embeddings = OllamaEmbeddings(model="nomic-embed-text")
 
 # Initialize Chroma (creates a local folder named 'chroma_db')
 vector_store = Chroma(
@@ -76,7 +76,6 @@ def process_and_store_rag(article_link: str, title: str, decoded_text: str):
     '''
     print(f"[*] Extracting IOCs with {MODEL} via LangChain for: {title}")
 
-    # Truncate decoded_text to avoid exceeding model context window (e.g., 2000 chars)
     # Prompt the structured LLM directly
     prompt = f"""You are an advanced cybersecurity analyst. Inspect the following threat intelligence report and extract all unique Indicators of Compromise (IOCs) matching the requested schema.
 
@@ -290,11 +289,8 @@ def ingest_articles(conn: sqlite3.Connection) -> None:
             if not decoded_text:  # skip in case the raw content was not extracted correctly
                 continue
             
-            ##  Note: If you have sufficient context window, use the entire decoded_text instead of truncated_text to ensure maximum extraction. Adjust max_len as needed based on the model's capabilities and expected report lengths.
-            max_len = 2000
-            truncated_text = decoded_text[:max_len]
-            
-            process_and_store_rag(article_link, title, truncated_text)
+            ##  Note: If you have insufficient context window, truncate the decoded_text instead and pass for embedding. 
+            process_and_store_rag(article_link, title, decoded_text)
 
             save_article(conn, article_link, title, published_date)
         return None
@@ -330,7 +326,7 @@ if __name__=="__main__":
             require_domains = True
         if "urls" in query.lower():
             require_urls = True
-        
+
         print("\n[+] Fetching answer from the model, please wait...\n")
         results = query_threat_intel_rag(
             vector_store=vector_store,
