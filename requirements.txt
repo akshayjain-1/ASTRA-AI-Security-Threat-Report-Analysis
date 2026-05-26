@@ -1,0 +1,8 @@
+chromadb==0.4.24
+feedparser==6.0.10
+langchain==0.1.16
+langchain-core==0.1.52
+langchain-community==0.0.34
+langchain-chroma==0.0.8
+langchain-ollama==0.0.6
+pydantic==2.7.1

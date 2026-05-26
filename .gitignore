@@ -1,0 +1,10 @@
+# Local database cache asset
+rss_feeds.db
+threat_intel_rag/
+
+# Python caching footprints
+__pycache__/
+*.pyc
+
+# Venv
+.venv/
